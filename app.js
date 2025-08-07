@@ -76,32 +76,41 @@ app.get("/users", (req, res) => {
 app.get("/users/:id", (req, res) => {
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
-  // find the user with id, the result will be an object or undefined
-  var user = users.find((u) => {
-    return u.id === id;
-  });
-
-  // if user not found return 404
-  if (!user) {
-    res.status(404).send({ message: "User not found." });
-  }
-
-  res.send(user);
+  User.findByPk(id)
+    .then((user) => {
+      // if user is not found
+      if (!user) {
+        res.status(404).send({
+          message: "User not found.",
+        });
+      }
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
+    });
 });
 
 // Post to create a user
 // localhost:3000/users
 app.post("/users", (req, res) => {
-  var newUser = {
-    id: users.length + 1,
+  User.create({
     username: req.body.username,
     email: req.body.email,
-  };
-
-  // update mock database/array with new user
-  users.push(newUser);
-
-  res.status(200).send(newUser);
+    password: req.body.password,
+  })
+    .then((user) => {
+      res.status(201).send(user);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
+    });
 });
 
 // Patch to update a user
@@ -109,42 +118,38 @@ app.post("/users", (req, res) => {
 app.patch("/users/:id", (req, res) => {
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
-  // find the user with id, the result will be an object or undefined
-  var user = users.find((u) => {
-    return u.id === id;
-  });
+  User.findByPk(id)
+    .then((user) => {
+      // if user is not found
+      if (!user) {
+        res.status(404).send({
+          message: "User not found.",
+        });
+      }
+      // update the user record
+      user.username = req.body.username;
+      user.email = req.body.email;
+      user.password = req.body.password;
 
-  // if user not found return 404
-  if (!user) {
-    res.status(404).send({ message: "User not found." });
-  }
-  // update the user that is found
-  user.username = req.body.username;
-  user.email = req.body.email;
-
-  res.send(user);
-});
-
-// Put to override user object
-// localhost:3000/users/1
-app.put("/users/:id", (req, res) => {
-  // We can grab id from url query parameters
-  var id = parseInt(req.params.id); //convert string to integer
-  // find the user with id, the result will be an object or undefined
-  var user = users.find((u) => {
-    return u.id === id;
-  });
-
-  // if user not found return 404
-  if (!user) {
-    res.status(404).send({ message: "User not found." });
-  }
-  // override the user that is found
-  user.id = req.body.id;
-  user.username = req.body.username;
-  user.email = req.body.email;
-
-  res.send(user);
+      // persist update to database using save function - this returns a promise object
+      user
+        .save()
+        .then((user) => {
+          res.status(200).send(user);
+        })
+        .catch((err) => {
+          res.status(500).send({
+            message: "Database connection failed.",
+            error: err.stack,
+          });
+        });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
+    });
 });
 
 // Delete a user
@@ -152,21 +157,34 @@ app.put("/users/:id", (req, res) => {
 app.delete("/users/:id", (req, res) => {
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
-  // find the user with id, the result will be an object or undefined
-  var user = users.find((u) => {
-    return u.id === id;
-  });
+  User.findByPk(id)
+    .then((user) => {
+      // if user is not found
+      if (!user) {
+        res.status(404).send({
+          message: "User not found.",
+        });
+      }
 
-  // if user not found return 404
-  if (!user) {
-    res.status(404).send({ message: "User not found." });
-  }
-  // find the index of user
-  var indexOfUser = users.indexOf(user);
-  // delete the user
-  users.splice(indexOfUser, 1);
-  // return the deleted record to update the client
-  res.send(user);
+      // destroy the user record
+      user
+        .destroy()
+        .then((user) => {
+          res.status(200).send(user);
+        })
+        .catch((err) => {
+          res.status(500).send({
+            message: "Database connection failed.",
+            error: err.stack,
+          });
+        });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
+    });
 });
 
 // test the database connection
