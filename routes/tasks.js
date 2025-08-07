@@ -1,13 +1,12 @@
 // router is used to create routes in express in a separate file
 const router = require("express").Router();
 const Task = require("../models/task");
-const User = require("../models/user");
 
-// Get all users
-// localhost:3000/users
-router.get("/users", (req, res) => {
-  // Use the User model to query database
-  User.findAll()
+// Get all tasks
+// localhost:3000/tasks
+router.get("/tasks", (req, res) => {
+  // Use the Task model to query database
+  Task.findAll()
     .then((result) => {
       res.status(200).send(result);
     })
@@ -19,22 +18,20 @@ router.get("/users", (req, res) => {
     });
 });
 
-// Get a single user
-// localhost:3000/users/1
-router.get("/users/:id", (req, res) => {
+// Get a single task
+// localhost:3000/tasks/1
+router.get("/tasks/:id", (req, res) => {
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
-  User.findByPk(id, {
-    include: Task,
-  })
-    .then((user) => {
-      // if user is not found
-      if (!user) {
+  Task.findByPk(id)
+    .then((task) => {
+      // if task is not found
+      if (!task) {
         res.status(404).send({
-          message: "User not found.",
+          message: "Task not found.",
         });
       }
-      res.status(200).send(user);
+      res.status(200).send(task);
     })
     .catch((err) => {
       res.status(500).send({
@@ -44,16 +41,17 @@ router.get("/users/:id", (req, res) => {
     });
 });
 
-// Post to create a user
-// localhost:3000/users
-router.post("/users", (req, res) => {
-  User.create({
-    username: req.body.username,
-    email: req.body.email,
-    password: req.body.password,
+// Post to create a task
+// localhost:3000/tasks
+router.post("/tasks", (req, res) => {
+  Task.create({
+    title: req.body.title,
+    description: req.body.description,
+    priority_level: req.body.priority_level,
+    user_id: req.body.user_id,
   })
-    .then((user) => {
-      res.status(201).send(user);
+    .then((task) => {
+      res.status(201).send(task);
     })
     .catch((err) => {
       res.status(500).send({
@@ -63,29 +61,30 @@ router.post("/users", (req, res) => {
     });
 });
 
-// Patch to update a user
-// localhost:3000/users/1
-router.patch("/users/:id", (req, res) => {
+// Patch to update a task
+// localhost:3000/tasks/1
+router.patch("/tasks/:id", (req, res) => {
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
-  User.findByPk(id)
-    .then((user) => {
-      // if user is not found
-      if (!user) {
+  Task.findByPk(id)
+    .then((task) => {
+      // if task is not found
+      if (!task) {
         res.status(404).send({
-          message: "User not found.",
+          message: "Task not found.",
         });
       }
-      // update the user record
-      user.username = req.body.username;
-      user.email = req.body.email;
-      user.password = req.body.password;
+      // update the task record
+      task.title = req.body.title;
+      task.description = req.body.description;
+      task.priority_level = req.body.priority_level;
+      task.user_id = req.body.user_id;
 
       // persist update to database using save function - this returns a promise object
-      user
+      task
         .save()
-        .then((user) => {
-          res.status(200).send(user);
+        .then((task) => {
+          res.status(200).send(task);
         })
         .catch((err) => {
           res.status(500).send({
@@ -102,25 +101,25 @@ router.patch("/users/:id", (req, res) => {
     });
 });
 
-// Delete a user
-// localhost:3000/users/1
-router.delete("/users/:id", (req, res) => {
+// Delete a task
+// localhost:3000/tasks/1
+router.delete("/tasks/:id", (req, res) => {
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
-  User.findByPk(id)
-    .then((user) => {
-      // if user is not found
-      if (!user) {
+  Task.findByPk(id)
+    .then((task) => {
+      // if task is not found
+      if (!task) {
         res.status(404).send({
-          message: "User not found.",
+          message: "Task not found.",
         });
       }
 
-      // destroy the user record
-      user
+      // destroy the task record
+      task
         .destroy()
-        .then((user) => {
-          res.status(200).send(user);
+        .then((task) => {
+          res.status(200).send(task);
         })
         .catch((err) => {
           res.status(500).send({

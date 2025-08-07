@@ -6,6 +6,8 @@ const express = require("express");
 const sequelize = require("./config");
 //import user routes
 const userRoutes = require("./routes/users");
+// import task routes
+const taskRoutes = require("./routes/tasks");
 
 // cors is a middleware that allows us to make requests to the backend server from different domains.
 var cors = require("cors");
@@ -32,8 +34,9 @@ app.use(
   })
 );
 
-// use the User routes
+// use the imported routes
 app.use(userRoutes);
+app.use(taskRoutes);
 
 // test the database connection
 sequelize
