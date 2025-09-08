@@ -16,6 +16,11 @@ const Course = sequelize.define(
       unique: true,
       allowNull: false,
     },
+    // cover path to the image
+    cover: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     level: {
       type: DataTypes.INTEGER,
       allowNull: false,

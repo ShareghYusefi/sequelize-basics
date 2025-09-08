@@ -48,7 +48,7 @@ router.post("/tasks", (req, res) => {
     title: req.body.title,
     description: req.body.description,
     priority_level: req.body.priority_level,
-    user_id: req.body.user_id,
+    user_id: req.body.user_id ?? 1,
   })
     .then((task) => {
       res.status(201).send(task);
@@ -78,7 +78,7 @@ router.patch("/tasks/:id", (req, res) => {
       task.title = req.body.title;
       task.description = req.body.description;
       task.priority_level = req.body.priority_level;
-      task.user_id = req.body.user_id;
+      task.user_id = req.body.user_id ?? 1;
 
       // persist update to database using save function - this returns a promise object
       task

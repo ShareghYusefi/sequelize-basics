@@ -1,6 +1,22 @@
 // router is used to create routes in express in a separate file
 const router = require("express").Router();
 const Course = require("../models/course");
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + "." + file.mimetype.split("/")[1]
+    );
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // Get all courses
 // localhost:3000/courses
@@ -43,9 +59,21 @@ router.get("/courses/:id", (req, res) => {
 
 // Post to create a course
 // localhost:3000/courses
-router.post("/courses", (req, res) => {
+router.post("/courses", upload.single("cover"), (req, res) => {
+  let filePath = "";
+  if (req.file) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    filePath =
+      req.file.fieldname +
+      "-" +
+      uniqueSuffix +
+      "." +
+      req.file.mimetype.split("/")[1];
+  }
+
   Course.create({
     name: req.body.name,
+    cover: filePath,
     level: req.body.level,
   })
     .then((course) => {
@@ -61,7 +89,17 @@ router.post("/courses", (req, res) => {
 
 // Patch to update a course
 // localhost:3000/courses/1
-router.patch("/courses/:id", (req, res) => {
+router.patch("/courses/:id", upload.single("cover"), (req, res) => {
+  let filePath = "";
+  if (req.file) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    filePath =
+      req.file.fieldname +
+      "-" +
+      uniqueSuffix +
+      "." +
+      req.file.mimetype.split("/")[1];
+  }
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
   Course.findByPk(id)
@@ -74,6 +112,7 @@ router.patch("/courses/:id", (req, res) => {
       }
       // update the course record
       course.name = req.body.name;
+      course.cover = filePath;
       course.level = req.body.level;
 
       // persist update to database using save function - this returns a promise object
