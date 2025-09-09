@@ -59,16 +59,20 @@ router.get("/courses/:id", (req, res) => {
 
 // Post to create a course
 // localhost:3000/courses
-router.post("/courses", upload.single("cover"), (req, res) => {
+// save each file to uploads folder via upload.array
+router.post("/courses", upload.array("files"), (req, res) => {
+  // We could save file and Course reference to a separate files table for a more robust file management solution
+
+  // For now, we'll just save the file path of the first uploaded file to the cover field
   let filePath = "";
-  if (req.file) {
+  if (req.files[0]) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     filePath =
-      req.file.fieldname +
+      req.files[0].fieldname +
       "-" +
       uniqueSuffix +
       "." +
-      req.file.mimetype.split("/")[1];
+      req.files[0].mimetype.split("/")[1];
   }
 
   Course.create({
