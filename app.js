@@ -9,6 +9,7 @@ const userRoutes = require("./routes/users");
 // import task routes
 const taskRoutes = require("./routes/tasks");
 const courseRoutes = require("./routes/courses");
+const fileRoutes = require("./routes/files");
 
 // cors is a middleware that allows us to make requests to the backend server from different domains.
 var cors = require("cors");
@@ -41,6 +42,8 @@ app.use(express.json());
 app.use(userRoutes);
 app.use(taskRoutes);
 app.use(courseRoutes);
+app.use(fileRoutes);
+
 // make the uploads folder publicly available
 // process.cwd() gives the current working directory of the node process
 // express.static serves static files such as images, css files, and js files

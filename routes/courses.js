@@ -2,21 +2,8 @@
 const router = require("express").Router();
 const Course = require("../models/course");
 const multer = require("multer");
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      file.fieldname + "-" + uniqueSuffix + "." + file.mimetype.split("/")[1]
-    );
-  },
-});
-
-const upload = multer({ storage: storage });
+const { upload, filePath } = require("../utils/upload");
+const File = require("../models/file");
 
 // Get all courses
 // localhost:3000/courses
@@ -61,31 +48,52 @@ router.get("/courses/:id", (req, res) => {
 // localhost:3000/courses
 // save each file to uploads folder via upload.array
 router.post("/courses", upload.array("files"), (req, res) => {
-  // We could save file and Course reference to a separate files table for a more robust file management solution
-
   // For now, we'll just save the file path of the first uploaded file to the cover field
-  let filePath = "";
+  let path = "";
   if (req.files[0]) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    filePath =
-      req.files[0].fieldname +
-      "-" +
-      uniqueSuffix +
-      "." +
-      req.files[0].mimetype.split("/")[1];
+    path = filePath(req.files[0]);
   }
 
   Course.create({
     name: req.body.name,
-    cover: filePath,
+    cover: path, // TODO: remove this later
     level: req.body.level,
   })
     .then((course) => {
-      res.status(201).send(course);
+      // If there are files uploaded, create File records
+      // handle multiple file uploads
+      const files = req.files;
+      // Save file information to the database
+      const filePromises = files.map((file) => {
+        const path = filePath(file);
+
+        // save file to db, return the record created from this as a promise so we can use Promise.all to wait for all to complete
+        return File.create({
+          fileable_id: course.id, // id of the task, user etc
+          fileable_type: "Course", // Task, User etc
+          name: file.originalname,
+          path: path,
+          mime_type: file.mimetype,
+          size: file.size,
+        });
+      });
+
+      // promise.all will wait for all the promises in the array to resolve before sending a response
+      Promise.all(filePromises)
+        .then((fileRecords) => {
+          // once all files have uploaded, send one success response
+          res.status(201).send({ course, files: fileRecords });
+        })
+        .catch((err) => {
+          res.status(500).send({
+            message: "File upload database connection failed.",
+            error: err.stack,
+          });
+        });
     })
     .catch((err) => {
       res.status(500).send({
-        message: "Database connection failed.",
+        message: "Course creation database connection failed.",
         error: err.stack,
       });
     });
@@ -94,15 +102,9 @@ router.post("/courses", upload.array("files"), (req, res) => {
 // Patch to update a course
 // localhost:3000/courses/1
 router.patch("/courses/:id", upload.single("cover"), (req, res) => {
-  let filePath = "";
+  let path = "";
   if (req.file) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    filePath =
-      req.file.fieldname +
-      "-" +
-      uniqueSuffix +
-      "." +
-      req.file.mimetype.split("/")[1];
+    path = filePath(req.file);
   }
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
@@ -116,7 +118,7 @@ router.patch("/courses/:id", upload.single("cover"), (req, res) => {
       }
       // update the course record
       course.name = req.body.name;
-      course.cover = filePath;
+      course.cover = path;
       course.level = req.body.level;
 
       // persist update to database using save function - this returns a promise object
