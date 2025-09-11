@@ -9,7 +9,14 @@ const File = require("../models/file");
 // localhost:3000/courses
 router.get("/courses", (req, res) => {
   // Use the Course model to query database
-  Course.findAll()
+  Course.findAll({
+    include: [
+      {
+        model: File,
+        as: "files", // use the alias defined in the model
+      },
+    ],
+  })
     .then((result) => {
       res.status(200).send(result);
     })
@@ -26,7 +33,15 @@ router.get("/courses", (req, res) => {
 router.get("/courses/:id", (req, res) => {
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
-  Course.findByPk(id)
+  // find by primary key and include files
+  Course.findByPk(id, {
+    include: [
+      {
+        model: File,
+        as: "files", // use the alias defined in the model
+      },
+    ],
+  })
     .then((course) => {
       // if course is not found
       if (!course) {
@@ -101,10 +116,10 @@ router.post("/courses", upload.array("files"), (req, res) => {
 
 // Patch to update a course
 // localhost:3000/courses/1
-router.patch("/courses/:id", upload.single("cover"), (req, res) => {
+router.patch("/courses/:id", upload.array("files"), (req, res) => {
   let path = "";
-  if (req.file) {
-    path = filePath(req.file);
+  if (req.files && req.files.length) {
+    path = filePath(req.files[0]);
   }
   // We can grab id from url query parameters
   var id = parseInt(req.params.id); //convert string to integer
@@ -125,7 +140,39 @@ router.patch("/courses/:id", upload.single("cover"), (req, res) => {
       course
         .save()
         .then((course) => {
-          res.status(200).send(course);
+          // get files in course
+          let courseFiles = course.files ? course.files : [];
+          let currentFiles = req.files ? req.files : [];
+          // get new files added
+          let newFiles = currentFiles.filter((f) => {
+            //check if filepath is equal.
+            return !courseFiles.some((cf) => cf.path === filePath(f));
+          });
+          // upload new files
+          const filePromises = newFiles.map((file) => {
+            const path = filePath(file);
+            // create a new file record
+            return File.create({
+              fileable_id: course.id, // id of the task, user etc
+              fileable_type: "Course", // Task, User etc
+              name: file.originalname,
+              path: path,
+              mime_type: file.mimetype,
+              size: file.size,
+            });
+          });
+          // promise.all will wait for all the promises in the array to resolve before sending a response
+          Promise.all(filePromises)
+            .then((fileRecords) => {
+              // once all files have uploaded, send one success response
+              res.status(200).send({ course, files: fileRecords });
+            })
+            .catch((err) => {
+              res.status(500).send({
+                message: "File upload database connection failed.",
+                error: err.stack,
+              });
+            });
         })
         .catch((err) => {
           res.status(500).send({

@@ -1,6 +1,8 @@
 const { DataTypes } = require("sequelize");
 // import sequelize connection
 const sequelize = require("../config");
+const Course = require("./course");
+const Task = require("./task");
 
 const File = sequelize.define(
   "File",
@@ -49,25 +51,35 @@ const File = sequelize.define(
   }
 );
 
-// Polymorphic association setup
-File.associate = (models) => {
-  File.belongsTo(models.Course, {
-    foreignKey: "fileable_id",
-    constraints: false,
-    as: "course",
-    scope: {
-      fileable_type: "Course",
-    },
-  });
+// a course has many files
+Course.hasMany(File, {
+  foreignKey: "fileable_id",
+  as: "files", // alias to use when including files in a course
+  constraints: false,
+});
 
-  File.belongsTo(models.Task, {
-    foreignKey: "fileable_id",
-    constraints: false,
-    as: "task",
-    scope: {
-      fileable_type: "Task",
-    },
-  });
-};
+// Polymorphic association setup
+File.belongsTo(Course, {
+  foreignKey: "fileable_id",
+  constraints: false,
+  as: "course",
+  scope: {
+    fileable_type: "Course",
+  },
+});
+
+Task.hasMany(File, {
+  foreignKey: "fileable_id",
+  constraints: false,
+});
+
+File.belongsTo(Task, {
+  foreignKey: "fileable_id",
+  constraints: false,
+  as: "task",
+  scope: {
+    fileable_type: "Task",
+  },
+});
 
 module.exports = File;
