@@ -2,17 +2,19 @@
 // Express is used to create a web server in node. Express works on a middleware concept(callback function).
 const express = require("express");
 const cors = require("cors");
-// Get the client
-const mysql = require("mysql2");
 const app = express();
 
 // Create the connection to database
-const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  database: "task_manager",
-  password: "password",
-});
+const sequelize = require("./config");
+
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log("Connection has been established successfully");
+  })
+  .catch((err) => {
+    console.log("Unable to connect to the database", err);
+  });
 
 // Allows Cross-Origin-Resource sharing
 app.use(cors());
@@ -35,16 +37,16 @@ app.use(express.urlencoded({ extended: true }));
 // localhost:3000/users
 app.get("/users", (req, res) => {
   // A simple SELECT query
-  connection.query("SELECT * FROM users", function (err, results, fields) {
-    if (err) {
-      res.status(500).send({
-        message: "Database connection failed.",
-        error: err.stack,
-      });
-    } else {
-      res.status(200).send(results);
-    }
-  });
+  //   connection.query("SELECT * FROM users", function (err, results, fields) {
+  //     if (err) {
+  //       res.status(500).send({
+  //         message: "Database connection failed.",
+  //         error: err.stack,
+  //       });
+  //     } else {
+  //       res.status(200).send(results);
+  //     }
+  //   });
 });
 
 // localhost:3000/users/1
