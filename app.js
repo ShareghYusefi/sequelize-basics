@@ -10,14 +10,8 @@ const app = express();
 const connection = mysql.createConnection({
   host: "localhost",
   user: "root",
-  database: "school",
+  database: "task_manager",
   password: "password",
-});
-
-// A simple SELECT query
-connection.query("SELECT * FROM students", function (err, results, fields) {
-  console.log(results); // results contains rows returned by server
-  console.log(fields); // fields contains extra meta data about results, if available
 });
 
 // Allows Cross-Origin-Resource sharing
@@ -38,16 +32,19 @@ app.use(express.json());
 // parse x-www-form-urlencoded to Javascript Object for req.body
 app.use(express.urlencoded({ extended: true }));
 
-// Mock data in Memory (instead of a database)
-var users = [
-  { id: 1, username: "JohnDoe", email: "JohnDoe@gmail.com" },
-  { id: 2, username: "JaneDoe", email: "JaneDoe@gmail.com" },
-  { id: 3, username: "JamesDow", email: "JamesDoe@gmail.com" },
-];
-
 // localhost:3000/users
 app.get("/users", (req, res) => {
-  res.status(200).send(users);
+  // A simple SELECT query
+  connection.query("SELECT * FROM users", function (err, results, fields) {
+    if (err) {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
+    } else {
+      res.status(200).send(results);
+    }
+  });
 });
 
 // localhost:3000/users/1
