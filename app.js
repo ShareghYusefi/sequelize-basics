@@ -7,14 +7,8 @@ const app = express();
 // Create the connection to database
 const sequelize = require("./config");
 
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log("Connection has been established successfully");
-  })
-  .catch((err) => {
-    console.log("Unable to connect to the database", err);
-  });
+// import user model
+const User = require("./models/user");
 
 // Allows Cross-Origin-Resource sharing
 app.use(cors());
@@ -36,17 +30,16 @@ app.use(express.urlencoded({ extended: true }));
 
 // localhost:3000/users
 app.get("/users", (req, res) => {
-  // A simple SELECT query
-  //   connection.query("SELECT * FROM users", function (err, results, fields) {
-  //     if (err) {
-  //       res.status(500).send({
-  //         message: "Database connection failed.",
-  //         error: err.stack,
-  //       });
-  //     } else {
-  //       res.status(200).send(results);
-  //     }
-  //   });
+  User.findAll()
+    .then((results) => {
+      res.status(200).send(results);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
+    });
 });
 
 // localhost:3000/users/1
@@ -156,6 +149,15 @@ app.delete("/users/:id", (req, res) => {
 
   res.status(200).send(user);
 });
+
+sequelize
+  .sync() // sync create the table in database should it not exist
+  .then(() => {
+    console.log("Connection has been established successfully.");
+  })
+  .catch((err) => {
+    console.error("Unable to connect to the database:", err);
+  });
 
 // starts a simple http server locally on port 3000
 app.listen(3000, "127.0.0.1", () => {
