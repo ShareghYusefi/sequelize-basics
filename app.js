@@ -47,33 +47,44 @@ app.get("/users/:id", (req, res) => {
   // We can grand id from the URL query parameters
   var id = parseInt(req.params.id); // convert string id to integer
   //   find the user with id, the result is going be a user object
-  var user = users.find((u) => {
-    return u.id === id;
-  });
+  User.findByPk(id)
+    .then((user) => {
+      // if user is undefined or null, we return 404
+      if (!user) {
+        res.status(404).send({
+          message: "User not found.",
+        });
+      }
 
-  // if user is undefined, we return 404
-  if (!user) {
-    res.status(404).send({
-      message: "User not found.",
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
     });
-  }
-
-  res.status(200).send(user);
 });
 
 // Post to create a user
 // localhost:3000/users
 app.post("/users", (req, res) => {
   var newUser = {
-    id: users.length + 1,
-    username: req.body.username,
     email: req.body.email,
+    password: req.body.password,
   };
 
-  // update mock database/array with new user
-  users.push(newUser);
-
-  res.status(201).send(newUser);
+  // update the database with new user
+  User.create(newUser)
+    .then((user) => {
+      res.status(201).send(user);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
+    });
 });
 
 // Patch to update a user
@@ -81,73 +92,100 @@ app.post("/users", (req, res) => {
 app.patch("/users/:id", (req, res) => {
   // We can grand id from the URL query parameters
   var id = parseInt(req.params.id); // convert string id to integer
-  //   find the user with id, the result is going be a user object
-  var user = users.find((u) => {
-    return u.id === id;
-  });
+  // find the user with id, the result is going be a user object
+  User.findByPk(id)
+    .then((user) => {
+      // if user is undefined or null, we return 404
+      if (!user) {
+        res.status(404).send({
+          message: "User not found.",
+        });
+      }
 
-  // if user is undefined, we return 404
-  if (!user) {
-    res.status(404).send({
-      message: "User not found.",
+      // update the user record
+      user.email = req.body.email;
+      user.password = req.body.password;
+
+      // persist update to dtabase using save() - this returns a promise object as well.
+      user
+        .save()
+        .then((user) => {
+          res.status(200).send(user);
+        })
+        .catch((err) => {
+          res.status(500).send({
+            message: err.message,
+            error: err.stack,
+          });
+        });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
     });
-  }
-
-  // update the user that is found
-  user.username = req.body.username;
-  user.email = req.body.email;
-
-  res.status(200).send(user);
 });
 
 // Put to override user object
 // localhost:3000/users/1
-app.put("/users/:id", (req, res) => {
-  // We can grand id from the URL query parameters
-  var id = parseInt(req.params.id); // convert string id to integer
-  //   find the user with id, the result is going be a user object
-  var user = users.find((u) => {
-    return u.id === id;
-  });
+// app.put("/users/:id", (req, res) => {
+//   // We can grand id from the URL query parameters
+//   var id = parseInt(req.params.id); // convert string id to integer
+//   //   find the user with id, the result is going be a user object
+//   var user = users.find((u) => {
+//     return u.id === id;
+//   });
 
-  // if user is undefined, we return 404
-  if (!user) {
-    res.status(404).send({
-      message: "User not found.",
-    });
-  }
+//   // if user is undefined, we return 404
+//   if (!user) {
+//     res.status(404).send({
+//       message: "User not found.",
+//     });
+//   }
 
-  // update the user that is found
-  user.id = req.body.id;
-  user.username = req.body.username;
-  user.email = req.body.email;
+//   // update the user that is found
+//   user.id = req.body.id;
+//   user.username = req.body.username;
+//   user.email = req.body.email;
 
-  res.status(200).send(user);
-});
+//   res.status(200).send(user);
+// });
 
 // Delete a user
 // localhost:3000/users/1
 app.delete("/users/:id", (req, res) => {
   // We can grand id from the URL query parameters
   var id = parseInt(req.params.id); // convert string id to integer
-  //   find the user with id, the result is going be a user object
-  var user = users.find((u) => {
-    return u.id === id;
-  });
+  // find the user with id, the result is going be a user object
+  User.findByPk(id)
+    .then((user) => {
+      // if user is undefined or null, we return 404
+      if (!user) {
+        res.status(404).send({
+          message: "User not found.",
+        });
+      }
 
-  // if user is undefined, we return 404
-  if (!user) {
-    res.status(404).send({
-      message: "User not found.",
+      // destroy the user record - this does return a promise object
+      user
+        .destroy()
+        .then((user) => {
+          res.status(200).send(user);
+        })
+        .catch((err) => {
+          res.status(500).send({
+            message: err.message,
+            error: err.stack,
+          });
+        });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Database connection failed.",
+        error: err.stack,
+      });
     });
-  }
-
-  // find the index of user
-  var indexOfUser = users.indexOf(user);
-  // delete the user
-  users.splice(indexOfUser, 1);
-
-  res.status(200).send(user);
 });
 
 sequelize
