@@ -1,10 +1,9 @@
 const { Sequelize, DataTypes } = require("sequelize");
 // import sequelize connection
 const sequelize = require("../config");
-const Task = require("./task");
 
-const User = sequelize.define(
-  "User",
+const Task = sequelize.define(
+  "Task",
   {
     // Model attributes are defined here
     id: {
@@ -13,13 +12,18 @@ const User = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    email: {
+    title: {
       type: DataTypes.STRING,
-      unique: true,
       allowNull: false,
     },
-    password: {
+    description: {
       type: DataTypes.STRING,
+      allowNull: false,
+    },
+    priority_level: {
+      // Enum data type allows a set of string values for this field
+      type: DataTypes.ENUM("Low", "Medium", "High"),
+      defaultValue: "Low",
       allowNull: false,
     },
   },
@@ -29,11 +33,4 @@ const User = sequelize.define(
   }
 );
 
-// A user has many tasks
-User.hasMany(Task, {
-  foreignKey: "user_id",
-  onUpdate: "CASCADE",
-  onDelete: "CASCADE",
-});
-
-module.exports = User;
+module.exports = Task;

@@ -1,5 +1,6 @@
 // router is used to create routes in express within a separate file
 const router = require("express").Router();
+const Task = require("../models/task");
 // import user model
 const User = require("../models/user");
 
@@ -22,7 +23,9 @@ router.get("/users/:id", (req, res) => {
   // We can grand id from the URL query parameters
   var id = parseInt(req.params.id); // convert string id to integer
   //   find the user with id, the result is going be a user object
-  User.findByPk(id)
+  User.findByPk(id, {
+    include: Task,
+  })
     .then((user) => {
       // if user is undefined or null, we return 404
       if (!user) {
