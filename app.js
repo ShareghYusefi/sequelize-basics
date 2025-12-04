@@ -8,6 +8,7 @@ const app = express();
 const sequelize = require("./config");
 const userRoutes = require("./routes/users");
 const taskRoutes = require("./routes/tasks");
+const courseRoutes = require("./routes/courses");
 
 // Allows Cross-Origin-Resource sharing
 app.use(cors());
@@ -30,6 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use(userRoutes);
 app.use(taskRoutes);
+app.use(courseRoutes);
 
 sequelize
   .sync() // sync create the table in database should it not exist
