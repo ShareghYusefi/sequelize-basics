@@ -48,7 +48,7 @@ router.post("/tasks", (req, res) => {
     title: req.body.title,
     description: req.body.description,
     priority_level: req.body.priority_level,
-    user_id: req.body.user_id,
+    user_id: req.body.user_id ?? 1,
   };
 
   // update the database with new task
