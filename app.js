@@ -11,7 +11,20 @@ const taskRoutes = require("./routes/tasks");
 const courseRoutes = require("./routes/courses");
 
 // Allows Cross-Origin-Resource sharing
-app.use(cors());
+var whitelist = [
+  "http://localhost:4200",
+  "https://school-client-cy74.onrender.com",
+];
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
+app.use(cors(corsOptions));
 
 // A middleware is a function that has access to the request, response, and next function.
 // You can think of it as a layer that sits between the request and response.
