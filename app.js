@@ -9,22 +9,24 @@ const sequelize = require("./config");
 const userRoutes = require("./routes/users");
 const taskRoutes = require("./routes/tasks");
 const courseRoutes = require("./routes/courses");
+const authRoutes = require("./routes/auth");
 
 // Allows Cross-Origin-Resource sharing
-var whitelist = [
-  "http://localhost:4200",
-  "https://school-client-cy74.onrender.com",
-];
-var corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-};
-app.use(cors(corsOptions));
+// var whitelist = [
+//   "http://localhost:4200",
+//   "https://school-client-cy74.onrender.com",
+// ];
+// var corsOptions = {
+//   origin: function (origin, callback) {
+//     if (whitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+// };
+// app.use(cors(corsOptions));
+app.use(cors());
 
 // A middleware is a function that has access to the request, response, and next function.
 // You can think of it as a layer that sits between the request and response.
@@ -40,6 +42,9 @@ app.use(customMiddleware);
 app.use(express.json());
 // parse x-www-form-urlencoded to Javascript Object for req.body
 app.use(express.urlencoded({ extended: true }));
+
+// Auth routes
+app.use("/auth", authRoutes);
 
 // Routes
 app.use(userRoutes);
