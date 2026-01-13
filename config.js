@@ -15,6 +15,7 @@ const sequelize = new Sequelize(DB_DATABASE, DB_USERNAME, DB_PASSWORD, {
   host: DB_HOSTNAME,
   dialect: DB_DIALECT,
   port: DB_PORT,
+  logging: console.log,
 });
 
 module.exports = sequelize;
