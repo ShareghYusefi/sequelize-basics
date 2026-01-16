@@ -10,6 +10,7 @@ const userRoutes = require("./routes/users");
 const taskRoutes = require("./routes/tasks");
 const courseRoutes = require("./routes/courses");
 const authRoutes = require("./routes/auth");
+const verify = require("./middlewares/verify");
 
 // Allows Cross-Origin-Resource sharing
 // var whitelist = [
@@ -45,6 +46,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Auth routes
 app.use("/auth", authRoutes);
+
+// Verify middleware to protect routes
+app.use(verify);
 
 // Routes
 app.use(userRoutes);

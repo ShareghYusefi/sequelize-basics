@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 
+// used to verify JWT tokens in incoming requests and protect routes
 const verify = (req, res, next) => {
+  // Get token from Authorization header (format: Bearer <token>)
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -8,10 +10,12 @@ const verify = (req, res, next) => {
   }
 
   try {
+    // Verify token using the secret key
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || "your_secret_key"
     );
+    // attach decoded user info to request object
     req.user = decoded;
     next();
   } catch (error) {
