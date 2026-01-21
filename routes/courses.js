@@ -2,6 +2,8 @@
 const router = require("express").Router();
 // import course model
 const Course = require("../models/course");
+const File = require("../models/file");
+const upload = require("../middlewares/fileUpload");
 
 // localhost:3000/courses
 router.get("/courses", (req, res) => {
@@ -43,7 +45,7 @@ router.get("/courses/:id", (req, res) => {
 
 // Post to create a course
 // localhost:3000/courses
-router.post("/courses", (req, res) => {
+router.post("/courses", upload.single("cover"), (req, res) => {
   var newCourse = {
     name: req.body.name,
     level: req.body.level,
@@ -52,6 +54,17 @@ router.post("/courses", (req, res) => {
   // update the database with new course
   Course.create(newCourse)
     .then((course) => {
+      // insert file record in the database
+      if (req.file) {
+        File.create({
+          filename: req.file.filename,
+          fileUrl: `/uploads/${req.file.filename}`,
+          fileSize: req.file.size,
+          mimeType: req.file.mimetype,
+          course_id: course.id, // associate file with the created course
+        });
+      }
+      // return the created course object as response
       res.status(201).send(course);
     })
     .catch((err) => {
