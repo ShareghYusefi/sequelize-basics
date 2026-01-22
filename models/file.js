@@ -13,6 +13,14 @@ const File = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    fileable_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    fileable_type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     filename: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -41,16 +49,28 @@ const File = sequelize.define(
 
 // File belongs to User, Course, and Task
 File.belongsTo(User, {
-  foreignKey: "user_id",
-  onDelete: "CASCADE",
+  foreignKey: "fileable_id",
+  constraints: false,
+  as: "user", // as alias for loading related user in queries
+  scope: {
+    fileable_type: "user",
+  },
 });
 File.belongsTo(Course, {
-  foreignKey: "course_id",
-  onDelete: "CASCADE",
+  foreignKey: "fileable_id",
+  constraints: false,
+  as: "course",
+  scope: {
+    fileable_type: "course",
+  },
 });
 File.belongsTo(Task, {
-  foreignKey: "task_id",
-  onDelete: "CASCADE",
+  foreignKey: "fileable_id",
+  constraints: false,
+  as: "task",
+  scope: {
+    fileable_type: "task",
+  },
 });
 
 module.exports = File;

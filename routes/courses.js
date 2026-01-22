@@ -57,11 +57,12 @@ router.post("/courses", upload.single("cover"), (req, res) => {
       // insert file record in the database
       if (req.file) {
         File.create({
+          fileable_id: course.id,
+          fileable_type: "course",
           filename: req.file.filename,
           fileUrl: `/uploads/${req.file.filename}`,
           fileSize: req.file.size,
           mimeType: req.file.mimetype,
-          course_id: course.id, // associate file with the created course
         });
       }
       // return the created course object as response
