@@ -2,6 +2,7 @@
 // Express is used to create a web server in node. Express works on a middleware concept(callback function).
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const app = express();
 
 // Create the connection to database
@@ -46,6 +47,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Auth routes
 app.use("/auth", authRoutes);
+// This allows serving /uploads/my-file.jpg -> http://localhost:3000/uploads/my-file.jpg
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Verify middleware to protect routes
 app.use(verify);
@@ -54,6 +57,7 @@ app.use(verify);
 app.use(userRoutes);
 app.use(taskRoutes);
 app.use(courseRoutes);
+// make the uploads folder publically accessible
 
 sequelize
   .sync() // sync create the table in database should it not exist

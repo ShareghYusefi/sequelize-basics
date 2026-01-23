@@ -47,13 +47,34 @@ const File = sequelize.define(
   }
 );
 
+// Course has many Files
+Course.hasMany(File, {
+  foreignKey: "fileable_id",
+  constraints: false,
+  as: "cover", // as alias for loading related files in queries
+});
+
+// User has many Files
+User.hasMany(File, {
+  foreignKey: "fileable_id",
+  constraints: false,
+  as: "files",
+});
+
+// Task has many Files
+Task.hasMany(File, {
+  foreignKey: "fileable_id",
+  constraints: false,
+  as: "files",
+});
+
 // File belongs to User, Course, and Task
 File.belongsTo(User, {
   foreignKey: "fileable_id",
   constraints: false,
   as: "user", // as alias for loading related user in queries
   scope: {
-    fileable_type: "user",
+    fileable_type: "User",
   },
 });
 File.belongsTo(Course, {
@@ -61,7 +82,7 @@ File.belongsTo(Course, {
   constraints: false,
   as: "course",
   scope: {
-    fileable_type: "course",
+    fileable_type: "Course",
   },
 });
 File.belongsTo(Task, {
@@ -69,7 +90,7 @@ File.belongsTo(Task, {
   constraints: false,
   as: "task",
   scope: {
-    fileable_type: "task",
+    fileable_type: "Task",
   },
 });
 

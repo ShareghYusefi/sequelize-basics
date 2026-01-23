@@ -24,7 +24,15 @@ router.get("/courses/:id", (req, res) => {
   // We can grand id from the URL query parameters
   var id = parseInt(req.params.id); // convert string id to integer
   //   find the course with id, the result is going be a course object
-  Course.findByPk(id)
+  // inlcude associated file record as well
+  Course.findByPk(id, {
+    include: [
+      {
+        model: File,
+        as: "cover",
+      },
+    ],
+  })
     .then((course) => {
       // if course is undefined or null, we return 404
       if (!course) {
