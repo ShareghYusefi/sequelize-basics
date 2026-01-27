@@ -86,11 +86,18 @@ router.post("/courses", upload.single("cover"), (req, res) => {
 
 // Patch to update a course
 // localhost:3000/courses/1
-router.patch("/courses/:id", (req, res) => {
+router.patch("/courses/:id", upload.single("cover"), (req, res) => {
   // We can grand id from the URL query parameters
   var id = parseInt(req.params.id); // convert string id to integer
   // find the course with id, the result is going be a course object
-  Course.findByPk(id)
+  Course.findByPk(id, {
+    include: [
+      {
+        model: File,
+        as: "cover",
+      },
+    ],
+  })
     .then((course) => {
       // if course is undefined or null, we return 404
       if (!course) {
@@ -107,6 +114,43 @@ router.patch("/courses/:id", (req, res) => {
       course
         .save()
         .then((course) => {
+          // if we have a new file uploaded, we need to create a new file record
+          if (req.file) {
+            // if there is an existing course.file, we need to delete that first
+            if (course.cover[0]) {
+              course.cover[0]
+                .destroy()
+                .then((result) => {
+                  // remove file from uploads folder
+                  const fs = require("fs");
+                  const filePath = `uploads/${course.cover[0].filename}`;
+                  fs.unlink(filePath, (err) => {
+                    if (err) {
+                      console.error(
+                        "Failed to delete existing cover image file.",
+                        err
+                      );
+                    }
+                  });
+                })
+                .catch((err) => {
+                  console.log(
+                    "Failed to delete existing cover image record.",
+                    err
+                  );
+                });
+            }
+
+            // create the new file record
+            File.create({
+              fileable_id: course.id,
+              fileable_type: "course",
+              filename: req.file.filename,
+              fileUrl: `/uploads/${req.file.filename}`,
+              fileSize: req.file.size,
+              mimeType: req.file.mimetype,
+            });
+          }
           res.status(200).send(course);
         })
         .catch((err) => {
