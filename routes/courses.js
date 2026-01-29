@@ -7,9 +7,31 @@ const upload = require("../middlewares/fileUpload");
 
 // localhost:3000/courses
 router.get("/courses", (req, res) => {
-  Course.findAll()
+  // findAndCountAll returns a pagination related info along with data
+  // offset - number of records to skip
+  // limit - number of records to return
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 3;
+  // page 1 -> offset 0
+  // page 2 -> offset 3
+  // page 3 -> offset 6
+  const offset = (page - 1) * limit;
+  Course.findAndCountAll({
+    offset: offset,
+    limit: limit,
+  })
     .then((results) => {
-      res.status(200).send(results);
+      // total is the total number of records in the table
+      const total = results.count;
+      // total number of pages
+      const totalPages = Math.ceil(results.count / limit);
+      const data = results.rows;
+      res.status(200).send({
+        data: data,
+        total: total,
+        totalPages: totalPages,
+        page: page,
+      });
     })
     .catch((err) => {
       res.status(500).send({
