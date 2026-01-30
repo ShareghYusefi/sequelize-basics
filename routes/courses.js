@@ -4,6 +4,7 @@ const router = require("express").Router();
 const Course = require("../models/course");
 const File = require("../models/file");
 const upload = require("../middlewares/fileUpload");
+const { Op } = require("sequelize");
 
 // localhost:3000/courses
 router.get("/courses", (req, res) => {
@@ -12,11 +13,27 @@ router.get("/courses", (req, res) => {
   // limit - number of records to return
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 3;
+  const search = req.query.search || "";
   // page 1 -> offset 0
   // page 2 -> offset 3
   // page 3 -> offset 6
   const offset = (page - 1) * limit;
   Course.findAndCountAll({
+    // search name or level fields
+    where: {
+      [Op.or]: [
+        {
+          name: {
+            [Op.like]: `%${search}%`,
+          },
+        },
+        {
+          level: {
+            [Op.like]: `%${search}%`,
+          },
+        },
+      ],
+    },
     offset: offset,
     limit: limit,
   })
